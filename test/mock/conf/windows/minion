@@ -1,0 +1,10 @@
+grains:
+  os: windows
+
+file_roots:
+  base:
+    - ./
+
+pillar_roots:
+  base:
+    - ./

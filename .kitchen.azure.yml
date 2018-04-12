@@ -1,0 +1,62 @@
+---
+driver:
+  name: azurerm
+
+driver_config:
+  subscription_id: '<%= ENV['TEST_KITCHEN_SUBSCRIPTION'] %>'
+  location: '<%= ENV['TEST_KITCHEN_LOCATION'] %>'
+  machine_size: 'Standard_D1'
+  password: <%= ENV['TEST_KITCHEN_PASSWORD'] %>
+
+platforms:
+  - name: centos-73
+    driver_config:
+      image_urn: OpenLogic:CentOS:7.3:latest
+    provisioner:
+      init_environment: "echo <%= ENV['TEST_KITCHEN_PASSWORD'] %> | sudo -S sed -i 's/azure ALL=(ALL) ALL/azure ALL=(ALL) NOPASSWD:ALL/g' /etc/sudoers.d/waagent"
+      install_after_init_environment: True
+  - name: windows-2012
+    driver_config:
+      image_urn: MicrosoftWindowsServer:WindowsServer:2012-R2-Datacenter:latest
+    provisioner:
+      salt_bootstrap_url: # Add URL
+
+provisioner:
+  name: salt_solo
+  is_file_root: false
+  formula: ""
+  vendor_path: ./template
+  require_chef: false
+  salt_version: <%= ENV['TEST_KITCHEN_SALT_VERSION'] %>
+  salt_copy_filter:
+    - .git
+    - .gitignore
+    - .gitattributes
+    - .kitchen
+    - .kitchen.yml
+    - .kitchen.azure.yml
+    - .yamllint
+    - test
+    - Gemfile
+    - Gemfile.lock
+    - README.rst
+    - CHANGELOG.rst
+    - LICENSE
+
+verifier:
+  name: inspec
+
+suites:
+  - name: template
+    provisioner:
+      pillars-from-files:
+        example.sls: pillar.example
+      pillars:
+        top.sls:
+          base:
+            '*':
+              - example
+      state_top:
+        base:
+          '*':
+            - template

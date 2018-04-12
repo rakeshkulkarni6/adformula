@@ -1,0 +1,4 @@
+name: template
+title: Tests for 'template' formula
+summary: Test the functionality of the 'template' formula
+version: 0.1.0

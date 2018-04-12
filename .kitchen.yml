@@ -1,0 +1,56 @@
+---
+driver:
+  name: vagrant
+
+platforms:
+  - name: centos-7.3
+  - name: windows-2012
+    provisioner:
+      salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
+      salt_bootstrap_options: -version <%= ENV['TEST_KITCHEN_SALT_VERSION'] || '2017.7.2' %>
+    driver:
+      box: opentable/win-2012r2-standard-amd64-nocm
+    transport:
+      name: winrm
+      elevated: true
+      elevated_username: System
+      elevated_password: null
+
+provisioner:
+  name: salt_solo
+  is_file_root: false
+  formula: "formulas"
+  require_chef: false
+  salt_version:  <%= ENV['TEST_KITCHEN_SALT_VERSION'] || '2017.7.2' %>
+  salt_copy_filter:
+    - .git
+    - .gitignore
+    - .gitattributes
+    - .kitchen
+    - .kitchen.yml
+    - .kitchen.azure.yml
+    - .yamllint
+    - test
+    - Gemfile
+    - Gemfile.lock
+    - README.rst
+    - CHANGELOG.rst
+    - LICENSE
+
+verifier:
+  name: inspec
+
+suites:
+  - name: template
+    provisioner:
+      pillars-from-files:
+        base.sls: test/pillar/basepillar
+      pillars:
+        top.sls:
+          base:
+            '*':
+              - base
+      state_top:
+        base:
+          '*':
+            - formulas.active_directory
